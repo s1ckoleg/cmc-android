@@ -1,55 +1,82 @@
 package com.example.cmcandroid.ui.portfolio
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.cmcandroid.R
 import com.example.cmcandroid.data.api.CoinResponse
 import com.example.cmcandroid.data.api.PortfolioEntryResponse
-import com.example.cmcandroid.databinding.ItemPortfolioEntryBinding
 import java.text.NumberFormat
 import java.util.Locale
 
-class PortfolioAdapter : ListAdapter<PortfolioEntryWithCoin, PortfolioAdapter.PortfolioViewHolder>(PortfolioDiffCallback()) {
+class PortfolioAdapter(
+    private val onDeleteClick: (PortfolioEntryResponse) -> Unit
+) : ListAdapter<PortfolioEntryWithCoin, PortfolioAdapter.PortfolioViewHolder>(PortfolioDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PortfolioViewHolder {
-        val binding = ItemPortfolioEntryBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return PortfolioViewHolder(binding)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_portfolio_entry, parent, false)
+        return PortfolioViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: PortfolioViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class PortfolioViewHolder(
-        private val binding: ItemPortfolioEntryBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+    inner class PortfolioViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val coinName: TextView = itemView.findViewById(R.id.coinName)
+        private val coinTicker: TextView = itemView.findViewById(R.id.coinTicker)
+        private val currentValue: TextView = itemView.findViewById(R.id.currentValue)
+        private val quantity: TextView = itemView.findViewById(R.id.quantity)
+        private val entryPrice: TextView = itemView.findViewById(R.id.entryPrice)
+        private val profitLoss: TextView = itemView.findViewById(R.id.profitLoss)
+        private val deleteButton: ImageButton = itemView.findViewById(R.id.deleteButton)
 
         fun bind(item: PortfolioEntryWithCoin) {
-            binding.coinName.setText(item.coin.name)
-            binding.coinTicker.setText(item.coin.ticker)
-            binding.currentValue.setText(formatPrice(item.coin.currentPrice * item.entry.quantity))
-            binding.quantity.setText("Quantity: ${String.format("%.4f", item.entry.quantity)}")
-            binding.entryPrice.setText("Entry Price: ${formatPrice(item.entry.entryPrice)}")
+            val entry = item.entry
+            val coin = item.coin
+            val currencyFormat = NumberFormat.getCurrencyInstance(Locale.US)
+            val numberFormat = NumberFormat.getNumberInstance(Locale.US).apply {
+                minimumFractionDigits = 4
+                maximumFractionDigits = 4
+            }
 
-            val profitLoss = (item.coin.currentPrice - item.entry.entryPrice) * item.entry.quantity
-            val profitLossPercentage = (item.coin.currentPrice - item.entry.entryPrice) / item.entry.entryPrice * 100
-            val profitLossText = "P/L: ${formatPrice(profitLoss)} (${formatPercentage(profitLossPercentage)})"
-            binding.profitLoss.setText(profitLossText)
-        }
+            coinName.text = coin.name
+            coinTicker.text = coin.ticker
+            currentValue.text = currencyFormat.format(entry.quantity * coin.currentPrice)
+            quantity.text = "Quantity: ${numberFormat.format(entry.quantity)}"
+            entryPrice.text = "Entry Price: ${currencyFormat.format(entry.entryPrice)}"
 
-        private fun formatPrice(price: Double): String {
-            return NumberFormat.getCurrencyInstance(Locale.US).format(price)
-        }
+            val profitLossValue = (entry.quantity * coin.currentPrice) - (entry.quantity * entry.entryPrice)
+            val profitLossPercentage = if (entry.entryPrice > 0) {
+                (profitLossValue / (entry.quantity * entry.entryPrice)) * 100
+            } else {
+                0.0
+            }
 
-        private fun formatPercentage(percentage: Double): String {
-            val prefix = if (percentage >= 0) "+" else ""
-            return "$prefix${String.format("%.2f", percentage)}%"
+            val profitLossText = StringBuilder()
+            profitLossText.append("P/L: ")
+            profitLossText.append(currencyFormat.format(profitLossValue))
+            profitLossText.append(" (")
+            profitLossText.append(if (profitLossPercentage >= 0) "+" else "")
+            profitLossText.append(String.format("%.2f%%", profitLossPercentage))
+            profitLossText.append(")")
+
+            profitLoss.text = profitLossText.toString()
+            profitLoss.setTextColor(
+                itemView.context.getColor(
+                    if (profitLossValue >= 0) R.color.profit_green else R.color.loss_red
+                )
+            )
+
+            deleteButton.setOnClickListener {
+                onDeleteClick(entry)
+            }
         }
     }
 

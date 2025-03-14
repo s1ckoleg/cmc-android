@@ -1,5 +1,6 @@
 package com.example.cmcandroid.data.api
 
+import retrofit2.Response
 import retrofit2.http.*
 
 interface CmcApi {
@@ -56,7 +57,7 @@ interface CmcApi {
     ): PortfolioEntryResponse
 
     @DELETE("api/portfolio/entries/{id}")
-    suspend fun deletePortfolioEntry(@Path("id") id: Int)
+    suspend fun deletePortfolioEntry(@Path("id") id: Int): Response<Unit>
 }
 
 // Request/Response data classes

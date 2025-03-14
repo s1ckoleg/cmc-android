@@ -79,6 +79,9 @@ class CmcRepository @Inject constructor(
     }
 
     suspend fun deletePortfolioEntry(id: Int) {
-        api.deletePortfolioEntry(id)
+        val response = api.deletePortfolioEntry(id)
+        if (!response.isSuccessful) {
+            throw Exception("Failed to delete portfolio entry: ${response.code()}")
+        }
     }
 } 

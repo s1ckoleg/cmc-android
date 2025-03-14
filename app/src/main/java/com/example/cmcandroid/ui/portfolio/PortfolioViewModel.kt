@@ -62,7 +62,51 @@ class PortfolioViewModel @Inject constructor(
             }
         }.sortedByDescending { it.entry.id }
 
+        // Calculate portfolio summary
+        var totalInvestment = 0.0
+        var currentValue = 0.0
+        var totalProfitLoss = 0.0
+
+        entriesWithCoins.forEach { entryWithCoin ->
+            val investment = entryWithCoin.entry.quantity * entryWithCoin.entry.entryPrice
+            val current = entryWithCoin.entry.quantity * entryWithCoin.coin.currentPrice
+            val profitLoss = current - investment
+
+            totalInvestment += investment
+            currentValue += current
+            totalProfitLoss += profitLoss
+        }
+
+        val profitLossPercentage = if (totalInvestment > 0) {
+            (totalProfitLoss / totalInvestment) * 100
+        } else {
+            0.0
+        }
+
+        _portfolioSummary.value = PortfolioSummaryResponse(
+            totalInvestment = totalInvestment,
+            currentValue = currentValue,
+            profitLoss = totalProfitLoss,
+            profitLossPercentage = profitLossPercentage
+        )
+
         _portfolioEntries.value = entriesWithCoins
+    }
+
+    fun deletePortfolioEntry(entry: PortfolioEntryResponse) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                repository.deletePortfolioEntry(entry.id)
+                
+                // Reload data to ensure UI is in sync with server
+                loadPortfolioData()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to delete portfolio entry"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun refreshPortfolio() {

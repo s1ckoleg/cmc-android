@@ -32,7 +32,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                _coins.value = repository.getAllCoins()
+                _coins.value = repository.getAllCoins().sortedByDescending { it.marketCap }
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load coins"
             } finally {
