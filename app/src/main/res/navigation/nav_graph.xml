@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.cmcandroid.ui.auth.LoginFragment"
+        android:label="Sign In"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_login_to_main"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.cmcandroid.ui.auth.RegisterFragment"
+        android:label="Sign Up"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_register_to_main"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.cmcandroid.ui.main.MainFragment"
+        android:label="Market"
+        tools:layout="@layout/fragment_main">
+        <action
+            android:id="@+id/action_main_to_coin_detail"
+            app:destination="@id/coinDetailFragment" />
+        <action
+            android:id="@+id/action_main_to_portfolio"
+            app:destination="@id/portfolioFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/coinDetailFragment"
+        android:name="com.example.cmcandroid.ui.coin.CoinDetailFragment"
+        android:label="Coin Details"
+        tools:layout="@layout/fragment_coin_detail">
+        <argument
+            android:name="coinId"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/portfolioFragment"
+        android:name="com.example.cmcandroid.ui.portfolio.PortfolioFragment"
+        android:label="Portfolio"
+        tools:layout="@layout/fragment_portfolio" />
+
+</navigation> 
